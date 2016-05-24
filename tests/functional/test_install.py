@@ -804,8 +804,8 @@ def test_install_upgrade_editable_depending_on_other_editable(script):
               version='0.1')
     """))
     script.pip('install', '--editable', pkga_path)
-    result = script.pip('list')
-    assert "pkga" in result.stdout
+    result = script.pip('list', '--format=freeze')
+    assert "pkga==0.1" in result.stdout
 
     script.scratch_path.join("pkgb").mkdir()
     pkgb_path = script.scratch_path / 'pkgb'
@@ -815,9 +815,9 @@ def test_install_upgrade_editable_depending_on_other_editable(script):
               version='0.1',
               install_requires=['pkga'])
     """))
-    script.pip('install', '--upgrade', '--editable', pkgb_path)
-    result = script.pip('list')
-    assert "pkgb" in result.stdout
+    script.pip('install', '--upgrade', '--editable', pkgb_path, '--no-index')
+    result = script.pip('list', '--format=freeze')
+    assert "pkgb==0.1" in result.stdout
 
 
 def test_install_subprocess_output_handling(script, data):
@@ -844,6 +844,18 @@ def test_install_subprocess_output_handling(script, data):
     result = script.pip(*(args + ["--global-option=--fail", "--verbose"]),
                         expect_error=True)
     assert 1 == result.stdout.count("I DIE, I DIE")
+
+
+def test_install_log(script, data, tmpdir):
+    # test that verbose logs go to "--log" file
+    f = tmpdir.join("log.txt")
+    args = ['--log=%s' % f,
+            'install', data.src.join('chattymodule')]
+    result = script.pip(*args)
+    assert 0 == result.stdout.count("HELLO FROM CHATTYMODULE")
+    with open(f, 'r') as fp:
+        # one from egg_info, one from install
+        assert 2 == fp.read().count("HELLO FROM CHATTYMODULE")
 
 
 def test_install_topological_sort(script, data):

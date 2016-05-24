@@ -19,7 +19,7 @@ from pip._vendor.packaging import specifiers
 from pip._vendor.packaging.markers import Marker
 from pip._vendor.packaging.requirements import InvalidRequirement, Requirement
 from pip._vendor.packaging.utils import canonicalize_name
-from pip._vendor.packaging.version import Version
+from pip._vendor.packaging.version import Version, parse as parse_version
 from pip._vendor.six.moves import configparser
 
 import pip.wheel
@@ -307,7 +307,12 @@ class InstallRequirement(object):
             # package is not available yet so we create a temp directory
             # Once run_egg_info will have run, we'll be able
             # to fix it via _correct_build_location
-            self._temp_build_dir = tempfile.mkdtemp('-build', 'pip-')
+            # Some systems have /tmp as a symlink which confuses custom
+            # builds (such as numpy). Thus, we ensure that the real path
+            # is returned.
+            self._temp_build_dir = os.path.realpath(
+                tempfile.mkdtemp('-build', 'pip-')
+            )
             self._ideal_build_dir = build_dir
             return self._temp_build_dir
         if self.editable:
@@ -425,9 +430,7 @@ class InstallRequirement(object):
                 command_desc='python setup.py egg_info')
 
         if not self.req:
-            if isinstance(
-                    pkg_resources.parse_version(self.pkg_info()["Version"]),
-                    Version):
+            if isinstance(parse_version(self.pkg_info()["Version"]), Version):
                 op = "=="
             else:
                 op = "==="
