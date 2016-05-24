@@ -46,9 +46,9 @@ tests_require = ['pytest', 'virtualenv>=1.10', 'scripttest>=1.3', 'mock',
 
 
 setup(
-    name="pip",
+    name="sl_pip",
     version=find_version("pip", "__init__.py"),
-    description="The PyPA recommended tool for installing Python packages.",
+    description="A Custom fork of pip",
     long_description=long_description,
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -78,9 +78,9 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "pip=pip:main",
-            "pip%s=pip:main" % sys.version[:1],
-            "pip%s=pip:main" % sys.version[:3],
+            "sl_pip=pip:main",
+            "sl_pip%s=pip:main" % sys.version[:1],
+            "sl_pip%s=pip:main" % sys.version[:2],
         ],
     },
     tests_require=tests_require,
